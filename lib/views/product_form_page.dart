@@ -15,6 +15,7 @@ class ProductFormPage extends StatefulWidget {
 }
 
 class _ProductFormPageState extends State<ProductFormPage> {
+  final _formKey = GlobalKey<FormState>();
   late final ProductFormViewModel _viewModel;
 
   @override
@@ -31,7 +32,8 @@ class _ProductFormPageState extends State<ProductFormPage> {
 
   void _submit() {
     final product = _viewModel.submit();
-    if (product != null) {
+    final isFormValid = _formKey.currentState?.validate() ?? false;
+    if (product != null && isFormValid) {
       Navigator.of(context).pop<Product>(product);
     }
   }
@@ -50,105 +52,108 @@ class _ProductFormPageState extends State<ProductFormPage> {
         builder: (context, _) {
           return SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const _FormHero(),
-                const SizedBox(height: 26),
-                const Text(
-                  'Informações do produto',
-                  style: TextStyle(
-                    color: AppColors.ink,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                const Text(
-                  'Preencha os campos abaixo para adicionar o item ao catálogo.',
-                  style: TextStyle(color: AppColors.muted, height: 1.35),
-                ),
-                const SizedBox(height: 22),
-                TextField(
-                  key: const Key('product-name-field'),
-                  autofocus: true,
-                  textCapitalization: TextCapitalization.sentences,
-                  onChanged: _viewModel.updateName,
-                  decoration: InputDecoration(
-                    labelText: 'Nome do produto',
-                    hintText: 'Ex.: Smartphone Vision Pro',
-                    prefixIcon: const Icon(Icons.inventory_2_outlined),
-                    errorText: _viewModel.nameError,
-                  ),
-                ),
-                const SizedBox(height: 17),
-                TextField(
-                  key: const Key('product-price-field'),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
-                  ],
-                  onChanged: _viewModel.updatePrice,
-                  decoration: InputDecoration(
-                    labelText: 'Preço',
-                    hintText: '0,00',
-                    prefixText: 'R\$  ',
-                    prefixIcon: const Icon(Icons.payments_outlined),
-                    errorText: _viewModel.priceError,
-                  ),
-                ),
-                const SizedBox(height: 17),
-                DropdownButtonFormField<ProductCategory>(
-                  key: const Key('product-category-field'),
-                  initialValue: _viewModel.category,
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    labelText: 'Categoria',
-                    prefixIcon: const Icon(Icons.category_outlined),
-                    errorText: _viewModel.categoryError,
-                  ),
-                  hint: const Text('Selecione uma categoria'),
-                  items: ProductCategory.values
-                      .map(
-                        (category) => DropdownMenuItem(
-                          value: category,
-                          child: Row(
-                            children: [
-                              Icon(
-                                category.icon,
-                                size: 20,
-                                color: category.color,
-                              ),
-                              const SizedBox(width: 10),
-                              Text(category.label),
-                            ],
-                          ),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: _viewModel.updateCategory,
-                ),
-                const SizedBox(height: 28),
-                ElevatedButton.icon(
-                  key: const Key('save-product-button'),
-                  onPressed: _submit,
-                  icon: const Icon(Icons.check_circle_outline_rounded),
-                  label: const Text('Cadastrar produto'),
-                ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    'Cancelar',
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const _FormHero(),
+                  const SizedBox(height: 26),
+                  const Text(
+                    'Informações do produto',
                     style: TextStyle(
-                      color: AppColors.muted,
-                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 5),
+                  const Text(
+                    'Preencha os campos abaixo para adicionar o item ao catálogo.',
+                    style: TextStyle(color: AppColors.muted, height: 1.35),
+                  ),
+                  const SizedBox(height: 22),
+                  TextFormField(
+                    key: const Key('product-name-field'),
+                    autofocus: true,
+                    textCapitalization: TextCapitalization.sentences,
+                    onChanged: _viewModel.updateName,
+                    validator: (_) => _viewModel.nameError,
+                    decoration: const InputDecoration(
+                      labelText: 'Nome do produto',
+                      hintText: 'Ex.: Smartphone Vision Pro',
+                      prefixIcon: Icon(Icons.inventory_2_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 17),
+                  TextFormField(
+                    key: const Key('product-price-field'),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
+                    ],
+                    onChanged: _viewModel.updatePrice,
+                    validator: (_) => _viewModel.priceError,
+                    decoration: const InputDecoration(
+                      labelText: 'Preço',
+                      hintText: '0,00',
+                      prefixText: 'R\$  ',
+                      prefixIcon: Icon(Icons.payments_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 17),
+                  DropdownButtonFormField<ProductCategory>(
+                    key: const Key('product-category-field'),
+                    initialValue: _viewModel.category,
+                    isExpanded: true,
+                    validator: (_) => _viewModel.categoryError,
+                    decoration: const InputDecoration(
+                      labelText: 'Categoria',
+                      prefixIcon: Icon(Icons.category_outlined),
+                    ),
+                    hint: const Text('Selecione uma categoria'),
+                    items: ProductCategory.values
+                        .map(
+                          (category) => DropdownMenuItem(
+                            value: category,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  category.icon,
+                                  size: 20,
+                                  color: category.color,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(category.label),
+                              ],
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: _viewModel.updateCategory,
+                  ),
+                  const SizedBox(height: 28),
+                  ElevatedButton.icon(
+                    key: const Key('save-product-button'),
+                    onPressed: _submit,
+                    icon: const Icon(Icons.check_circle_outline_rounded),
+                    label: const Text('Cadastrar produto'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text(
+                      'Cancelar',
+                      style: TextStyle(
+                        color: AppColors.muted,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
